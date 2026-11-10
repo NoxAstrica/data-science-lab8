@@ -1,3 +1,7 @@
+# results!
+<img width="1317" height="363" alt="image" src="https://github.com/user-attachments/assets/da85d67c-f35c-4042-a826-4d2a9f8c088e" />
+
+
 # Practical Labs 8
 # Implement CNN Model for Pet Image Classification
 
