@@ -98,43 +98,28 @@ def CNN() -> Sequential:
         - Batch normalization and max pooling after each block
         - Dense layers with dropout for classification
     """
+
     model = Sequential()
 
-    # Input Layer
-    
-    # First Convolutional Block with 128 filters
+    # Input layer
+    model.add(Input(shape=(180, 180, 3)))
 
-    # Batch normalization
+    # Three convolutional blocks: 128, 256, 512 filters
+    for filters in (128, 256, 512):
+        model.add(Conv2D(filters, (3, 3), strides=(2, 2), padding="same", activation="relu"))
+        model.add(BatchNormalization())
+        model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
 
-    # Max pooling
+    # Flatten and dense layers
+    model.add(Flatten())
+    model.add(Dense(1024, activation="relu"))
+    model.add(Dropout(0.3))
+    model.add(Dense(2, activation="softmax"))   # 2 classes: Cat and Dog
 
-    
-    # Second Convolutional Block with 256 filters
-
-    # Batch normalization
-
-    # Max pooling
-
-    
-    # Third Convolutional Block with 512 filters
-
-    # Batch normalization
-
-    # Max pooling
-
-    
-    # Flatten and Dense Layers
-
-    # Dense layer with 1024 units and ReLU activation
-
-    # Dropout layer with rate 0.3
-
-    # Output Dense layer with 2 units and softmax activation. 2 classes: Cat and Dog
-    
     return model
 
 
-def train(batch_size: int = 32, epochs: int = 10) -> Tuple[Sequential, DirectoryIterator]:
+def train(batch_size: int = 32, epochs: int = 25) -> Tuple[Sequential, DirectoryIterator]:
     """
     Train the CNN model on the pet images dataset.
     
@@ -145,20 +130,29 @@ def train(batch_size: int = 32, epochs: int = 10) -> Tuple[Sequential, Directory
     Returns:
         tuple: (trained_model, test_data)
     """
+
     # Load the data
-    train_data, val_data, test_data = ...
-    
+    train_data, val_data, test_data = train_dataset(batch_size)
+
     # Create and compile the model
-    model = ...
+    model = CNN()
+    model.compile(optimizer='adam',
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
 
     # Print model summary
-    print(...)
-    
+    model.summary()
+
     # Train the model
-    history = model.fit(...)
-    
+    history = model.fit(train_data,
+                        validation_data=val_data,
+                        epochs=epochs,
+                        callbacks=[IntervalLogger()],
+                        verbose=0)
+
     # Evaluate on test set
-    test_loss, test_acc = model.evaluate(...)
+    test_loss, test_acc = model.evaluate(test_data)
+
     print(f"Test accuracy: {test_acc:.4f}")
     
     # Return the model and test data
@@ -225,6 +219,11 @@ if __name__ == '__main__':
     
     # Train the model
     model, test_data = train()
-    
+
+    import numpy as np
+    images, labels = next(test_data)
+    pred = np.argmax(model.predict(images), axis=1)
+    print(np.bincount(pred, minlength=2), "predictions per class (Cat, Dog)")
+        
     # Visualize predictions
     visualize_predictions(model, test_data)
